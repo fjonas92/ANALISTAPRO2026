@@ -144,7 +144,10 @@ for jogo in jogos_filtrados:
                         "clima": clima,
                     }
                 except Exception as erro:
-                    mensagem = f"Erro (diagnóstico temporário): {type(erro).__name__}: {erro}"
+                    if "429" in str(erro):
+                        mensagem = "Um dos serviços externos está limitando requisições. Espere alguns segundos e clique em Analisar de novo."
+                    else:
+                        mensagem = f"Não foi possível analisar esse jogo agora (dados insuficientes na API). Detalhe: {erro}"
                     st.session_state.analises[fixture_id] = {"ok": False, "erro": mensagem}
                 st.rerun()
 

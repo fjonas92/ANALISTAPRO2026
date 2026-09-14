@@ -11,61 +11,69 @@ import streamlit as st
 def _obter_coordenadas(cidade: str):
     if not cidade:
         return None
-    resp = requests.get(
-        "https://geocoding-api.open-meteo.com/v1/search",
-        params={"name": cidade, "count": 1},
-        timeout=10,
-    )
-    resp.raise_for_status()
-    resultados = resp.json().get("results")
-    if not resultados:
+    try:
+        resp = requests.get(
+            "https://geocoding-api.open-meteo.com/v1/search",
+            params={"name": cidade, "count": 1},
+            timeout=10,
+        )
+        resp.raise_for_status()
+        resultados = resp.json().get("results")
+        if not resultados:
+            return None
+        r = resultados[0]
+        return r["latitude"], r["longitude"]
+    except Exception:
         return None
-    r = resultados[0]
-    return r["latitude"], r["longitude"]
 
 
 @st.cache_data(ttl=3600)
 def obter_clima(cidade: str, data_hora_iso: str):
     """
     Retorna temperatura, chuva (mm) e vento (km/h) previstos pra hora do jogo.
-    Retorna None se não conseguir localizar a cidade ou não houver previsão.
+    Retorna None se não conseguir (cidade não encontrada, API de clima fora do ar,
+    limite de requisições atingido, etc.) — clima é só um extra, não deve travar
+    o resto da análise se falhar.
     """
-    coordenadas = _obter_coordenadas(cidade)
-    if not coordenadas:
+    try:
+        coordenadas = _obter_coordenadas(cidade)
+        if not coordenadas:
+            return None
+        lat, lon = coordenadas
+        data = data_hora_iso[:10]
+
+        resp = requests.get(
+            "https://api.open-meteo.com/v1/forecast",
+            params={
+                "latitude": lat,
+                "longitude": lon,
+                "hourly": "temperature_2m,precipitation,wind_speed_10m",
+                "start_date": data,
+                "end_date": data,
+                "timezone": "auto",
+            },
+            timeout=10,
+        )
+        resp.raise_for_status()
+        dados = resp.json()
+        horas = dados.get("hourly", {}).get("time", [])
+        if not horas:
+            return None
+
+        hora_alvo = data_hora_iso[:13]
+        indice = 0
+        for i, h in enumerate(horas):
+            if h.startswith(hora_alvo):
+                indice = i
+                break
+
+        return {
+            "temperatura": dados["hourly"]["temperature_2m"][indice],
+            "chuva_mm": dados["hourly"]["precipitation"][indice],
+            "vento_kmh": dados["hourly"]["wind_speed_10m"][indice],
+        }
+    except Exception:
         return None
-    lat, lon = coordenadas
-    data = data_hora_iso[:10]
-
-    resp = requests.get(
-        "https://api.open-meteo.com/v1/forecast",
-        params={
-            "latitude": lat,
-            "longitude": lon,
-            "hourly": "temperature_2m,precipitation,wind_speed_10m",
-            "start_date": data,
-            "end_date": data,
-            "timezone": "auto",
-        },
-        timeout=10,
-    )
-    resp.raise_for_status()
-    dados = resp.json()
-    horas = dados.get("hourly", {}).get("time", [])
-    if not horas:
-        return None
-
-    hora_alvo = data_hora_iso[:13]
-    indice = 0
-    for i, h in enumerate(horas):
-        if h.startswith(hora_alvo):
-            indice = i
-            break
-
-    return {
-        "temperatura": dados["hourly"]["temperature_2m"][indice],
-        "chuva_mm": dados["hourly"]["precipitation"][indice],
-        "vento_kmh": dados["hourly"]["wind_speed_10m"][indice],
-    }
 
 
 def interpretar_clima(clima: dict) -> str:
