@@ -1,0 +1,8 @@
+.streamlit/secrets.toml
+__pycache__/
+*.pyc
+.venv/
+venv/
+odds_historico.json
+resultado_teste.txt
+test_dados.py
