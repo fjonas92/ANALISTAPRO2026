@@ -1,0 +1,13 @@
+# Esconde a barra de ferramentas do Streamlit Cloud (ícone do GitHub, editar, etc.)
+[client]
+toolbarMode = "minimal"
+
+# Tema visual do site. O Streamlit já oferece um botão nativo (menu de
+# configurações, ícone de engrenagem) pra quem quiser trocar de tema —
+# não precisamos construir isso na mão.
+[theme]
+base = "dark"
+primaryColor = "#e63946"
+backgroundColor = "#0e1726"
+secondaryBackgroundColor = "#1a2436"
+textColor = "#f8fafc"

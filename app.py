@@ -37,24 +37,14 @@ if not st.session_state.autenticado:
 
     st.stop()  # Impede que o resto do site carregue sem autenticação
 
-# ---------- TEMA CLARO/ESCURO ----------
-if "tema" not in st.session_state:
-    st.session_state.tema = "Escuro"
-
-with st.sidebar:
-    st.session_state.tema = st.radio("Tema", ["Escuro", "Claro"], index=0 if st.session_state.tema == "Escuro" else 1)
-
-if st.session_state.tema == "Escuro":
-    cor_fundo, cor_texto, cor_card = "#0e1726", "#f8fafc", "#1a2436"
-else:
-    cor_fundo, cor_texto, cor_card = "#f8fafc", "#0e1726", "#ffffff"
-
+# ---------- ESTILO DOS CARDS ----------
 st.markdown(
-    f"""
+    """
     <style>
-    .stApp {{ background-color: {cor_fundo}; color: {cor_texto}; }}
-    .card-dica {{ background-color: {cor_card}; border-radius: 10px; padding: 14px; margin-bottom: 10px; }}
-    .card-contexto {{ background-color: {cor_card}; border-radius: 10px; padding: 12px; margin-bottom: 14px; font-size: 0.92em; }}
+    .card-dica { background-color: #1a2436; border-radius: 10px; padding: 14px; margin-bottom: 10px; color: #f8fafc; }
+    .card-dica * { color: #f8fafc !important; }
+    .card-contexto { background-color: #1a2436; border-radius: 10px; padding: 12px; margin-bottom: 14px; font-size: 0.92em; color: #f8fafc; }
+    .card-contexto * { color: #f8fafc !important; }
     </style>
     """,
     unsafe_allow_html=True,
@@ -154,10 +144,7 @@ for jogo in jogos_filtrados:
                         "clima": clima,
                     }
                 except Exception as erro:
-                    if "429" in str(erro):
-                        mensagem = "A API está limitando requisições feitas rápido demais. Espere uns 10 segundos e clique em Analisar de novo."
-                    else:
-                        mensagem = f"Não foi possível analisar esse jogo agora (dados insuficientes na API). Detalhe: {erro}"
+                    mensagem = f"Erro (diagnóstico temporário): {type(erro).__name__}: {erro}"
                     st.session_state.analises[fixture_id] = {"ok": False, "erro": mensagem}
                 st.rerun()
 
