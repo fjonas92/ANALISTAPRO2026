@@ -180,15 +180,28 @@ def montar_estatisticas_time(stats: dict) -> dict:
     }
 
 
+def _sequencia_forma(form_string: str, ultimos: int = 5) -> str:
+    """Transforma 'WWLDW' (formato da API) em 'V-V-D-E-V' (Vitória/Empate/Derrota)."""
+    if not form_string:
+        return "sem dados suficientes"
+    recorte = form_string[-ultimos:]
+    traducao = {"W": "V", "D": "E", "L": "D"}
+    return "-".join(traducao.get(c, "?") for c in recorte)
+
+
 def montar_contexto_forca(home_stats, away_stats, home_nome, away_nome) -> str:
-    """Frase de analista resumindo a força ofensiva/defensiva de cada lado."""
+    """Frase de analista resumindo a força ofensiva/defensiva de cada lado, com o retrospecto recente."""
     perfil_casa = montar_estatisticas_time(home_stats)
     perfil_fora = montar_estatisticas_time(away_stats)
+    seq_casa = _sequencia_forma(perfil_casa["forma"])
+    seq_fora = _sequencia_forma(perfil_fora["forma"])
     return (
         f"{home_nome}: ataque {perfil_casa['ataque_qualidade']}, defesa {perfil_casa['defesa_qualidade']} "
         f"(marca {perfil_casa['media_marca_casa']:.1f}/sofre {perfil_casa['media_sofre_casa']:.1f} em casa). "
+        f"Últimos jogos: {seq_casa}. "
         f"{away_nome}: ataque {perfil_fora['ataque_qualidade']}, defesa {perfil_fora['defesa_qualidade']} "
-        f"(marca {perfil_fora['media_marca_fora']:.1f}/sofre {perfil_fora['media_sofre_fora']:.1f} fora)."
+        f"(marca {perfil_fora['media_marca_fora']:.1f}/sofre {perfil_fora['media_sofre_fora']:.1f} fora). "
+        f"Últimos jogos: {seq_fora}."
     )
 
 

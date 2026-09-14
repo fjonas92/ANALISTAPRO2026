@@ -182,6 +182,12 @@ for jogo in jogos_filtrados:
                     """,
                     unsafe_allow_html=True,
                 )
+
+            st.caption(
+                "⚠️ Estas são estimativas geradas a partir de estatísticas públicas, não uma promessa de "
+                "resultado. Apostar envolve risco real de perda, e a decisão final é sempre sua. Use isso "
+                "como mais uma fonte de informação, não como garantia."
+            )
         else:
             st.error(resultado_salvo["erro"])
             if st.button("Tentar de novo", key=f"retry_{fixture_id}"):
